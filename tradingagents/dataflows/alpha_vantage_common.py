@@ -1,11 +1,24 @@
 import os
+import time
+import logging
 import requests
 import pandas as pd
 import json
 from datetime import datetime
 from io import StringIO
 
+logger = logging.getLogger(__name__)
+
 API_BASE_URL = "https://www.alphavantage.co/query"
+
+# ── Timeout / retry settings ──────────────────────────────────────────────────
+_DATA_API_TIMEOUT = int(os.getenv("DATA_API_TIMEOUT", "60"))   # seconds per request
+_DATA_RETRY_DELAYS: tuple[int, ...] = (2, 4, 8)               # exponential backoff
+_RETRYABLE_STATUS_CODES = frozenset({500, 502, 503, 504})
+
+
+def _debug_enabled() -> bool:
+    return os.getenv("TRADINGAGENTS_DEBUG", "").lower() in ("1", "true", "yes")
 
 def get_api_key() -> str:
     """Retrieve the API key for Alpha Vantage from environment variables."""
@@ -41,7 +54,11 @@ class AlphaVantageRateLimitError(Exception):
 
 def _make_api_request(function_name: str, params: dict) -> dict | str:
     """Helper function to make API requests and handle responses.
-    
+
+    Includes a per-request timeout (default 60 s, override via DATA_API_TIMEOUT
+    env var) and exponential-backoff retry on transient network/server errors
+    (delays: 2 s → 4 s → 8 s).
+
     Raises:
         AlphaVantageRateLimitError: When API rate limit is exceeded
     """
@@ -52,35 +69,105 @@ def _make_api_request(function_name: str, params: dict) -> dict | str:
         "apikey": get_api_key(),
         "source": "trading_agents",
     })
-    
+
     # Handle entitlement parameter if present in params or global variable
     current_entitlement = globals().get('_current_entitlement')
     entitlement = api_params.get("entitlement") or current_entitlement
-    
+
     if entitlement:
         api_params["entitlement"] = entitlement
     elif "entitlement" in api_params:
         # Remove entitlement if it's None or empty
         api_params.pop("entitlement", None)
-    
-    response = requests.get(API_BASE_URL, params=api_params)
-    response.raise_for_status()
 
-    response_text = response.text
-    
-    # Check if response is JSON (error responses are typically JSON)
-    try:
-        response_json = json.loads(response_text)
-        # Check for rate limit error
-        if "Information" in response_json:
-            info_message = response_json["Information"]
-            if "rate limit" in info_message.lower() or "api key" in info_message.lower():
-                raise AlphaVantageRateLimitError(f"Alpha Vantage rate limit exceeded: {info_message}")
-    except json.JSONDecodeError:
-        # Response is not JSON (likely CSV data), which is normal
-        pass
+    # ── Proxy support (HTTP_PROXY / HTTPS_PROXY from env / .env) ─────────────
+    proxies: dict | None = None
+    http_proxy  = os.getenv("HTTP_PROXY") or os.getenv("http_proxy")
+    https_proxy = os.getenv("HTTPS_PROXY") or os.getenv("https_proxy")
+    if http_proxy or https_proxy:
+        proxies = {}
+        if http_proxy:
+            proxies["http"]  = http_proxy
+        if https_proxy:
+            proxies["https"] = https_proxy
 
-    return response_text
+    debug = _debug_enabled()
+    last_exc: Exception | None = None
+
+    for attempt, delay in enumerate((*_DATA_RETRY_DELAYS, None), start=1):
+        t0 = time.monotonic()
+        try:
+            if debug:
+                logger.debug(
+                    "[AlphaVantage] attempt=%d  function=%s  timeout=%ds",
+                    attempt, function_name, _DATA_API_TIMEOUT,
+                )
+            response = requests.get(
+                API_BASE_URL,
+                params=api_params,
+                timeout=_DATA_API_TIMEOUT,
+                proxies=proxies,
+            )
+            elapsed = time.monotonic() - t0
+            if debug:
+                logger.debug(
+                    "[AlphaVantage] OK  attempt=%d  status=%d  elapsed=%.2fs",
+                    attempt, response.status_code, elapsed,
+                )
+
+            # Retry on transient 5xx server errors
+            if response.status_code in _RETRYABLE_STATUS_CODES:
+                raise requests.exceptions.HTTPError(
+                    f"{response.status_code} Server Error", response=response
+                )
+
+            response.raise_for_status()
+
+        except (requests.exceptions.Timeout,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.HTTPError) as exc:
+            elapsed = time.monotonic() - t0
+            last_exc = exc
+
+            # HTTPError from raise_for_status() for 4xx (e.g. 401, 404) is NOT
+            # retryable — only 5xx errors are (handled above by the explicit
+            # check).  Timeout and ConnectionError are always retryable.
+            is_retryable = not isinstance(exc, requests.exceptions.HTTPError) or (
+                getattr(getattr(exc, "response", None), "status_code", 0)
+                in _RETRYABLE_STATUS_CODES
+            )
+
+            if debug:
+                logger.debug(
+                    "[AlphaVantage] error  attempt=%d  retryable=%s  elapsed=%.2fs  exc=%s",
+                    attempt, is_retryable, elapsed, exc,
+                )
+            if not is_retryable or delay is None:
+                raise
+            logger.warning(
+                "[AlphaVantage] Transient error – retrying in %ds (attempt %d/%d): %s",
+                delay, attempt, len(_DATA_RETRY_DELAYS), exc,
+            )
+            time.sleep(delay)
+            continue
+
+        response_text = response.text
+
+        # Check if response is JSON (error responses are typically JSON)
+        try:
+            response_json = json.loads(response_text)
+            # Check for rate limit error
+            if "Information" in response_json:
+                info_message = response_json["Information"]
+                if "rate limit" in info_message.lower() or "api key" in info_message.lower():
+                    raise AlphaVantageRateLimitError(f"Alpha Vantage rate limit exceeded: {info_message}")
+        except json.JSONDecodeError:
+            # Response is not JSON (likely CSV data), which is normal
+            pass
+
+        return response_text
+
+    raise last_exc  # type: ignore[misc]
 
 
 

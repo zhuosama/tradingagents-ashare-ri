@@ -85,6 +85,15 @@ MODEL_OPTIONS: ProviderModeOptions = {
             ("Qwen3:latest (8B, local)", "qwen3:latest"),
         ],
     },
+    "deepseek": {
+        "quick": [
+            ("DeepSeek Chat (V3) - Fast, cost-effective", "deepseek-chat"),
+        ],
+        "deep": [
+            ("DeepSeek Reasoner (R1) - Chain-of-thought reasoning", "deepseek-reasoner"),
+            ("DeepSeek Chat (V3) - Fast, cost-effective", "deepseek-chat"),
+        ],
+    },
 }
 
 

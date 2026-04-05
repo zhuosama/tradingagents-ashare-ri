@@ -2,6 +2,7 @@ import time
 import logging
 
 import pandas as pd
+import requests
 import yfinance as yf
 from yfinance.exceptions import YFRateLimitError
 from stockstats import wrap
@@ -11,21 +12,52 @@ from .config import get_config
 
 logger = logging.getLogger(__name__)
 
+# ── Timeout / retry settings ─────────────────────────────────────────────────
+_YF_TIMEOUT = int(os.getenv("YF_API_TIMEOUT", "60"))   # seconds per download call
+
+
+def normalize_ticker_yf(ticker: str) -> str:
+    """Normalize A-share ticker suffixes for yfinance.
+
+    yfinance uses .SS for Shanghai (not .SH) and .SZ for Shenzhen (already correct).
+    """
+    t = ticker.upper()
+    if t.endswith(".SH"):
+        return t[:-3] + ".SS"
+    return t
+
+
+def _yf_is_retryable(exc: Exception) -> bool:
+    """Return True for transient yfinance / network errors worth retrying."""
+    if isinstance(exc, YFRateLimitError):
+        return True
+    if isinstance(exc, (requests.exceptions.Timeout,
+                        requests.exceptions.ConnectionError)):
+        return True
+    err = str(exc).lower()
+    return any(kw in err for kw in ("timeout", "connection", "429", "502", "503", "504"))
+
 
 def yf_retry(func, max_retries=3, base_delay=2.0):
-    """Execute a yfinance call with exponential backoff on rate limits.
+    """Execute a yfinance call with exponential backoff on rate limits and
+    transient network errors (Timeout, ConnectionError, 5xx).
 
     yfinance raises YFRateLimitError on HTTP 429 responses but does not
-    retry them internally. This wrapper adds retry logic specifically
-    for rate limits. Other exceptions propagate immediately.
+    retry them internally. This wrapper adds retry logic for rate limits
+    *and* common connection failures.  Hard errors (ValueError, KeyError,
+    authentication) propagate immediately.
     """
     for attempt in range(max_retries + 1):
         try:
             return func()
-        except YFRateLimitError:
-            if attempt < max_retries:
+        except Exception as exc:
+            if _yf_is_retryable(exc) and attempt < max_retries:
                 delay = base_delay * (2 ** attempt)
-                logger.warning(f"Yahoo Finance rate limited, retrying in {delay:.0f}s (attempt {attempt + 1}/{max_retries})")
+                logger.warning(
+                    "Yahoo Finance transient error, retrying in %.0fs "
+                    "(attempt %d/%d): %s",
+                    delay, attempt + 1, max_retries, exc,
+                )
                 time.sleep(delay)
             else:
                 raise
@@ -69,13 +101,15 @@ def load_ohlcv(symbol: str, curr_date: str) -> pd.DataFrame:
     if os.path.exists(data_file):
         data = pd.read_csv(data_file, on_bad_lines="skip")
     else:
+        yf_symbol = normalize_ticker_yf(symbol)
         data = yf_retry(lambda: yf.download(
-            symbol,
+            yf_symbol,
             start=start_str,
             end=end_str,
             multi_level_index=False,
             progress=False,
             auto_adjust=True,
+            timeout=_YF_TIMEOUT,
         ))
         data = data.reset_index()
         data.to_csv(data_file, index=False)

@@ -1,3 +1,4 @@
+import os
 import questionary
 from typing import List, Optional, Tuple, Dict
 
@@ -7,6 +8,39 @@ from cli.models import AnalystType
 from tradingagents.llm_clients.model_catalog import get_model_options
 
 console = Console()
+
+
+# ── 【新增】各 provider 的 API Key 环境变量名映射 ─────────────────────────────
+_PROVIDER_KEY_ENV: dict[str, str] = {
+    "openai":      "OPENAI_API_KEY",
+    "anthropic":   "ANTHROPIC_API_KEY",
+    "google":      "GOOGLE_API_KEY",
+    "xai":         "XAI_API_KEY",
+    "openrouter":  "OPENROUTER_API_KEY",
+    "deepseek":    "DEEPSEEK_API_KEY",
+    # ollama 本地运行，无需 API Key
+}
+
+
+def _validate_api_key(provider_lower: str) -> None:
+    """【新增】选中 provider 后的前置校验：检测对应 API Key 是否已配置。
+
+    - 若 Key 缺失，打印友好的中文提示并退出，避免后续崩溃。
+    - Ollama 无需 Key，直接跳过。
+    """
+    if provider_lower not in _PROVIDER_KEY_ENV:
+        # 未知 provider 或不需要 Key（ollama），跳过
+        return
+
+    env_var = _PROVIDER_KEY_ENV[provider_lower]
+    if not os.getenv(env_var):
+        console.print(
+            f"\n[bold red]✗ 未检测到 {env_var} 环境变量[/bold red]\n"
+            f"请在项目根目录的 [yellow].env[/yellow] 文件中添加以下配置后重新启动：\n\n"
+            f"    [green]{env_var}=your_api_key_here[/green]\n\n"
+            f"[dim]DeepSeek API Key 申请地址：https://platform.deepseek.com/api_keys[/dim]\n"
+        )
+        exit(1)
 
 TICKER_INPUT_EXAMPLES = "Examples: SPY, CNC.TO, 7203.T, 0700.HK"
 
@@ -188,17 +222,24 @@ def select_deep_thinking_agent(provider) -> str:
     return choice
 
 def select_llm_provider() -> tuple[str, str]:
-    """Select the OpenAI api url using interactive selection."""
-    # Define OpenAI api options with their corresponding endpoints
+    """Select the LLM provider using interactive selection.
+
+    Returns (display_name, base_url).  display_name 经 .lower() 后即为框架内
+    使用的 llm_provider 字符串（openai / google / anthropic / xai /
+    openrouter / deepseek / ollama）。
+    """
+    # 【修改说明】在 Openrouter 与 Ollama 之间插入 DeepSeek 选项，
+    # 格式与其他选项完全一致，base_url 使用 DeepSeek 官方端点。
     BASE_URLS = [
-        ("OpenAI", "https://api.openai.com/v1"),
-        ("Google", "https://generativelanguage.googleapis.com/v1"),
-        ("Anthropic", "https://api.anthropic.com/"),
-        ("xAI", "https://api.x.ai/v1"),
-        ("Openrouter", "https://openrouter.ai/api/v1"),
-        ("Ollama", "http://localhost:11434/v1"),
+        ("OpenAI",      "https://api.openai.com/v1"),
+        ("Google",      "https://generativelanguage.googleapis.com/v1"),
+        ("Anthropic",   "https://api.anthropic.com/"),
+        ("xAI",         "https://api.x.ai/v1"),
+        ("Openrouter",  "https://openrouter.ai/api/v1"),
+        ("DeepSeek",    "https://api.deepseek.com/v1"),   # 【新增】DeepSeek
+        ("Ollama",      "http://localhost:11434/v1"),
     ]
-    
+
     choice = questionary.select(
         "Select your LLM Provider:",
         choices=[
@@ -208,19 +249,22 @@ def select_llm_provider() -> tuple[str, str]:
         instruction="\n- Use arrow keys to navigate\n- Press Enter to select",
         style=questionary.Style(
             [
-                ("selected", "fg:magenta noinherit"),
-                ("highlighted", "fg:magenta noinherit"),
-                ("pointer", "fg:magenta noinherit"),
+                ("selected",     "fg:magenta noinherit"),
+                ("highlighted",  "fg:magenta noinherit"),
+                ("pointer",      "fg:magenta noinherit"),
             ]
         ),
     ).ask()
-    
+
     if choice is None:
-        console.print("\n[red]no OpenAI backend selected. Exiting...[/red]")
+        console.print("\n[red]No LLM provider selected. Exiting...[/red]")
         exit(1)
-    
+
     display_name, url = choice
-    print(f"You selected: {display_name}\tURL: {url}")
+    console.print(f"[dim]You selected: {display_name}  URL: {url}[/dim]")
+
+    # 【新增】前置校验：检测对应 API Key 是否已配置
+    _validate_api_key(display_name.lower())
 
     return display_name, url
 
