@@ -1,222 +1,488 @@
-<p align="center">
-  <img src="assets/TauricResearch.png" style="width: 60%; height: auto;">
-</p>
+# TradingAgents
 
-<div align="center" style="line-height: 1;">
-  <a href="https://arxiv.org/abs/2412.20138" target="_blank"><img alt="arXiv" src="https://img.shields.io/badge/arXiv-2412.20138-B31B1B?logo=arxiv"/></a>
-  <a href="https://discord.com/invite/hk9PGKShPK" target="_blank"><img alt="Discord" src="https://img.shields.io/badge/Discord-TradingResearch-7289da?logo=discord&logoColor=white&color=7289da"/></a>
-  <a href="./assets/wechat.png" target="_blank"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-TauricResearch-brightgreen?logo=wechat&logoColor=white"/></a>
-  <a href="https://x.com/TauricResearch" target="_blank"><img alt="X Follow" src="https://img.shields.io/badge/X-TauricResearch-white?logo=x&logoColor=white"/></a>
-  <br>
-  <a href="https://github.com/TauricResearch/" target="_blank"><img alt="Community" src="https://img.shields.io/badge/Join_GitHub_Community-TauricResearch-14C290?logo=discourse"/></a>
-</div>
+Multi-agent LLM framework for stock analysis and regular-investment research.
 
-<div align="center">
-  <!-- Keep these links. Translations will automatically update with the README. -->
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=de">Deutsch</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=es">Español</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=fr">français</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=ja">日本語</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=ko">한국어</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=pt">Português</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=ru">Русский</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=zh">中文</a>
-</div>
+This workspace is based on `TradingAgents` and currently includes:
 
----
+- Multi-agent stock analysis with analyst, researcher, trader, risk, and portfolio-manager stages
+- Interactive CLI for one-off stock analysis: `tradingagents`
+- Interactive CLI for regular-investment / DCA analysis: `tradingagents-ri`
+- Multi-provider LLM support: OpenAI, Anthropic, Google, xAI, OpenRouter, DeepSeek, MiMo, Ollama
+- A-share support with `AKShare` fundamentals, A-share news routing, and A-share rule validation
+- Output language selection, report persistence, and reusable Python API
 
-# TradingAgents: Multi-Agents LLM Financial Trading Framework
+## Disclaimer
 
-## News
-- [2026-03] **TradingAgents v0.2.3** released with multi-language support, GPT-5.4 family models, unified model catalog, backtesting date fidelity, and proxy support.
-- [2026-03] **TradingAgents v0.2.2** released with GPT-5.4/Gemini 3.1/Claude 4.6 model coverage, five-tier rating scale, OpenAI Responses API, Anthropic effort control, and cross-platform stability.
-- [2026-02] **TradingAgents v0.2.0** released with multi-provider LLM support (GPT-5.x, Gemini 3.x, Claude 4.x, Grok 4.x) and improved system architecture.
-- [2026-01] **Trading-R1** [Technical Report](https://arxiv.org/abs/2509.11420) released, with [Terminal](https://github.com/TauricResearch/Trading-R1) expected to land soon.
+This project is for research and educational use only.
 
-<div align="center">
-<a href="https://www.star-history.com/#TauricResearch/TradingAgents&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=TauricResearch/TradingAgents&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=TauricResearch/TradingAgents&type=Date" />
-   <img alt="TradingAgents Star History" src="https://api.star-history.com/svg?repos=TauricResearch/TradingAgents&type=Date" style="width: 80%; height: auto;" />
- </picture>
-</a>
-</div>
+- It is not financial, investment, legal, tax, or trading advice.
+- Model outputs can be wrong, incomplete, stale, or internally inconsistent.
+- Market data providers can fail, lag, rate-limit, or return partial data.
+- You are responsible for validating all conclusions before making any real-money decision.
 
-> 🎉 **TradingAgents** officially released! We have received numerous inquiries about the work, and we would like to express our thanks for the enthusiasm in our community.
->
-> So we decided to fully open-source the framework. Looking forward to building impactful projects with you!
+## What Is In This Repository
 
-<div align="center">
+The working code lives in this directory:
 
-🚀 [TradingAgents](#tradingagents-framework) | ⚡ [Installation & CLI](#installation-and-cli) | 🎬 [Demo](https://www.youtube.com/watch?v=90gr5lwjIho) | 📦 [Package Usage](#tradingagents-package) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
+```text
+TradingAgents/
+├── tradingagents/              # installable Python package
+│   ├── agents/                 # analysts, researchers, trader, risk, managers
+│   ├── data/                   # adapters, cache, routing, concurrency
+│   ├── dataflows/              # tool-facing data access layer
+│   ├── graph/                  # LangGraph orchestration
+│   ├── llm_clients/            # provider abstraction and model catalog
+│   └── default_config.py       # canonical runtime config
+├── cli/                        # Typer + Questionary interactive CLIs
+├── tests/                      # pytest suite
+├── run_000792sz.py             # example A-share deep analysis script
+├── run_601298sh.py             # example A-share deep analysis script
+├── run_ri_159928.py            # example DCA script
+├── run_ri_600900.py            # example DCA script
+├── main.py                     # simple package entry example
+└── validate_handoff.py         # focused validation for recent A-share fixes
+```
 
-</div>
+## Key Features
 
-## TradingAgents Framework
+### 1. Multi-agent workflow
 
-TradingAgents is a multi-agent trading framework that mirrors the dynamics of real-world trading firms. By deploying specialized LLM-powered agents: from fundamental analysts, sentiment experts, and technical analysts, to trader, risk management team, the platform collaboratively evaluates market conditions and informs trading decisions. Moreover, these agents engage in dynamic discussions to pinpoint the optimal strategy.
+`TradingAgentsGraph` runs a staged workflow:
 
-<p align="center">
-  <img src="assets/schema.png" style="width: 100%; height: auto;">
-</p>
+1. Market analyst
+2. Social / sentiment analyst
+3. News analyst
+4. Fundamentals analyst
+5. Bull vs bear research debate
+6. Trader proposal
+7. Aggressive / neutral / conservative risk debate
+8. Portfolio-manager final decision
 
-> TradingAgents framework is designed for research purposes. Trading performance may vary based on many factors, including the chosen backbone language models, model temperature, trading periods, the quality of data, and other non-deterministic factors. [It is not intended as financial, investment, or trading advice.](https://tauric.ai/disclaimer/)
+Outputs are persisted as markdown reports and state logs.
 
-Our framework decomposes complex trading tasks into specialized roles. This ensures the system achieves a robust, scalable approach to market analysis and decision-making.
+### 2. Regular-investment workflow
 
-### Analyst Team
-- Fundamentals Analyst: Evaluates company financials and performance metrics, identifying intrinsic values and potential red flags.
-- Sentiment Analyst: Analyzes social media and public sentiment using sentiment scoring algorithms to gauge short-term market mood.
-- News Analyst: Monitors global news and macroeconomic indicators, interpreting the impact of events on market conditions.
-- Technical Analyst: Utilizes technical indicators (like MACD and RSI) to detect trading patterns and forecast price movements.
+`tradingagents-ri` provides a separate CLI for DCA / regular-investment analysis and stress scenarios.
 
-<p align="center">
-  <img src="assets/analyst.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
+### 3. A-share support
 
-### Researcher Team
-- Comprises both bullish and bearish researchers who critically assess the insights provided by the Analyst Team. Through structured debates, they balance potential gains against inherent risks.
+This workspace includes explicit A-share handling that is not covered well by the original generic README:
 
-<p align="center">
-  <img src="assets/researcher.png" width="70%" style="display: inline-block; margin: 0 2%;">
-</p>
+- Preferred ticker formats: `300750.SZ`, `600519.SH`, `159928.SZ`
+- A-share fundamentals can use `AKShare`
+- A-share news uses a dedicated path and does not fall back to global-news prompts
+- Unsafe fabricated A-share news fallback was replaced with a safe structured fallback
+- Trader output is validated against A-share constraints such as `T+1`
+- Exchange-specific ticker normalization is handled internally for vendors such as `yfinance`
 
-### Trader Agent
-- Composes reports from the analysts and researchers to make informed trading decisions. It determines the timing and magnitude of trades based on comprehensive market insights.
+### 4. Multi-provider LLM support
 
-<p align="center">
-  <img src="assets/trader.png" width="70%" style="display: inline-block; margin: 0 2%;">
-</p>
+The current codebase supports these providers:
 
-### Risk Management and Portfolio Manager
-- Continuously evaluates portfolio risk by assessing market volatility, liquidity, and other risk factors. The risk management team evaluates and adjusts trading strategies, providing assessment reports to the Portfolio Manager for final decision.
-- The Portfolio Manager approves/rejects the transaction proposal. If approved, the order will be sent to the simulated exchange and executed.
+| Provider | Env var | Default / typical base URL |
+|---|---|---|
+| OpenAI | `OPENAI_API_KEY` | `https://api.openai.com/v1` |
+| Anthropic | `ANTHROPIC_API_KEY` | provider SDK default |
+| Google | `GOOGLE_API_KEY` | `https://generativelanguage.googleapis.com/v1` |
+| xAI | `XAI_API_KEY` | `https://api.x.ai/v1` |
+| OpenRouter | `OPENROUTER_API_KEY` | `https://openrouter.ai/api/v1` |
+| DeepSeek | `DEEPSEEK_API_KEY` | `https://api.deepseek.com/v1` |
+| MiMo | `MIMO_API_KEY` | `https://token-plan-cn.xiaomimimo.com/v1` |
+| Ollama | none | `http://localhost:11434/v1` |
 
-<p align="center">
-  <img src="assets/risk.png" width="70%" style="display: inline-block; margin: 0 2%;">
-</p>
+The shared model catalog currently includes `mimo-v2-pro` under provider `mimo`.
 
-## Installation and CLI
+## Installation
 
-### Installation
+### Requirements
 
-Clone TradingAgents:
+- Python `>=3.10`
+- Recommended: Python `3.13`
+- Network access for remote LLM and market-data providers
+
+### Install
+
 ```bash
 git clone https://github.com/TauricResearch/TradingAgents.git
 cd TradingAgents
+python -m venv .venv
 ```
 
-Create a virtual environment in any of your favorite environment managers:
-```bash
-conda create -n tradingagents python=3.13
-conda activate tradingagents
+Activate the environment.
+
+PowerShell:
+
+```powershell
+.venv\Scripts\Activate.ps1
 ```
 
-Install the package and its dependencies:
-```bash
-pip install .
-```
-
-### Required APIs
-
-TradingAgents supports multiple LLM providers. Set the API key for your chosen provider:
+Bash:
 
 ```bash
-export OPENAI_API_KEY=...          # OpenAI (GPT)
-export GOOGLE_API_KEY=...          # Google (Gemini)
-export ANTHROPIC_API_KEY=...       # Anthropic (Claude)
-export XAI_API_KEY=...             # xAI (Grok)
-export OPENROUTER_API_KEY=...      # OpenRouter
-export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage
+source .venv/bin/activate
 ```
 
-For local models, configure Ollama with `llm_provider: "ollama"` in your config.
+Install dependencies and the package:
 
-Alternatively, copy `.env.example` to `.env` and fill in your keys:
 ```bash
-cp .env.example .env
+pip install --upgrade pip
+pip install -r requirements.txt
+pip install -e .
 ```
 
-### CLI Usage
+## Environment Variables
 
-Launch the interactive CLI:
+Create `.env` in the repository root. At minimum, configure the provider you actually use.
+
+```env
+OPENAI_API_KEY=
+GOOGLE_API_KEY=
+ANTHROPIC_API_KEY=
+XAI_API_KEY=
+OPENROUTER_API_KEY=
+DEEPSEEK_API_KEY=
+MIMO_API_KEY=
+ALPHA_VANTAGE_API_KEY=
+TRADINGAGENTS_RESULTS_DIR=./results
+LLM_API_TIMEOUT=120
+```
+
+Notes:
+
+- `TRADINGAGENTS_RESULTS_DIR` overrides the default output directory.
+- `ALPHA_VANTAGE_API_KEY` is only needed when you choose Alpha Vantage.
+- `Ollama` does not require an API key.
+
+Security:
+
+- keep real secrets only in local `.env` or your shell environment
+- do not commit populated `.env` files
+- `.env.example` is a template only and must remain secret-free
+
+## Quick Start
+
+### Interactive stock analysis CLI
+
 ```bash
-tradingagents          # installed command
-python -m cli.main     # alternative: run directly from source
-```
-You will see a screen where you can select your desired tickers, analysis date, LLM provider, research depth, and more.
-
-<p align="center">
-  <img src="assets/cli/cli_init.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-An interface will appear showing results as they load, letting you track the agent's progress as it runs.
-
-<p align="center">
-  <img src="assets/cli/cli_news.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-<p align="center">
-  <img src="assets/cli/cli_transaction.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-## TradingAgents Package
-
-### Implementation Details
-
-We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers: OpenAI, Google, Anthropic, xAI, OpenRouter, and Ollama.
-
-### Python Usage
-
-To use TradingAgents inside your code, you can import the `tradingagents` module and initialize a `TradingAgentsGraph()` object. The `.propagate()` function will return a decision. You can run `main.py`, here's also a quick example:
-
-```python
-from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
-
-ta = TradingAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
-
-# forward propagate
-_, decision = ta.propagate("NVDA", "2026-01-15")
-print(decision)
+tradingagents
 ```
 
-You can also adjust the default configuration to set your own choice of LLMs, debate rounds, etc.
+Alternative:
+
+```bash
+python -m cli.main
+```
+
+The CLI lets you choose:
+
+- ticker
+- analysis date
+- analysts
+- research depth
+- LLM provider
+- quick-thinking model
+- deep-thinking model
+- output language
+
+### Interactive regular-investment CLI
+
+```bash
+tradingagents-ri
+```
+
+Alternative:
+
+```bash
+python -m cli.regular_investment_cli
+```
+
+## Python Usage
+
+### Minimal example
 
 ```python
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 
 config = DEFAULT_CONFIG.copy()
-config["llm_provider"] = "openai"        # openai, google, anthropic, xai, openrouter, ollama
-config["deep_think_llm"] = "gpt-5.4"     # Model for complex reasoning
-config["quick_think_llm"] = "gpt-5.4-mini" # Model for quick tasks
-config["max_debate_rounds"] = 2
+config["output_language"] = "Chinese"
 
-ta = TradingAgentsGraph(debug=True, config=config)
-_, decision = ta.propagate("NVDA", "2026-01-15")
+ta = TradingAgentsGraph(debug=False, config=config)
+state, decision = ta.propagate("NVDA", "2026-01-15")
+
 print(decision)
 ```
 
-See `tradingagents/default_config.py` for all configuration options.
+### A-share example
 
-## Contributing
+For A-shares, prefer `AKShare` for fundamentals:
 
-We welcome contributions from the community! Whether it's fixing a bug, improving documentation, or suggesting a new feature, your input helps make this project better. If you are interested in this line of research, please consider joining our open-source financial AI research community [Tauric Research](https://tauric.ai/).
+```python
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+from tradingagents.default_config import DEFAULT_CONFIG
+
+config = DEFAULT_CONFIG.copy()
+config["output_language"] = "Chinese"
+config["data_vendors"] = {
+    "core_stock_apis": "yfinance",
+    "technical_indicators": "yfinance",
+    "fundamental_data": "akshare",
+    "news_data": "yfinance",
+}
+
+ta = TradingAgentsGraph(debug=False, config=config)
+state, decision = ta.propagate("300750.SZ", "2026-04-06")
+
+print(decision)
+```
+
+### MiMo example
+
+```python
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+from tradingagents.default_config import DEFAULT_CONFIG
+
+config = DEFAULT_CONFIG.copy()
+config["llm_provider"] = "mimo"
+config["deep_think_llm"] = "mimo-v2-pro"
+config["quick_think_llm"] = "mimo-v2-pro"
+config["backend_url"] = "https://token-plan-cn.xiaomimimo.com/v1"
+config["output_language"] = "Chinese"
+config["max_debate_rounds"] = 5
+config["max_risk_discuss_rounds"] = 3
+config["data_vendors"] = {
+    "core_stock_apis": "yfinance",
+    "technical_indicators": "yfinance",
+    "fundamental_data": "akshare",
+    "news_data": "yfinance",
+}
+
+ta = TradingAgentsGraph(debug=False, config=config)
+state, decision = ta.propagate("300750.SZ", "2026-04-06")
+print(decision)
+```
+
+## Recommended Config Patterns
+
+### OpenAI
+
+```python
+config["llm_provider"] = "openai"
+config["deep_think_llm"] = "gpt-5.4"
+config["quick_think_llm"] = "gpt-5.4-mini"
+config["backend_url"] = "https://api.openai.com/v1"
+```
+
+### DeepSeek
+
+```python
+config["llm_provider"] = "deepseek"
+config["deep_think_llm"] = "deepseek-reasoner"
+config["quick_think_llm"] = "deepseek-chat"
+config["backend_url"] = "https://api.deepseek.com/v1"
+```
+
+If you encounter tool-calling instability on a given setup, fall back to:
+
+```python
+config["deep_think_llm"] = "deepseek-chat"
+config["quick_think_llm"] = "deepseek-chat"
+```
+
+### MiMo
+
+```python
+config["llm_provider"] = "mimo"
+config["deep_think_llm"] = "mimo-v2-pro"
+config["quick_think_llm"] = "mimo-v2-pro"
+config["backend_url"] = "https://token-plan-cn.xiaomimimo.com/v1"
+```
+
+## Data Routing
+
+The framework separates provider routing by category:
+
+```python
+config["data_vendors"] = {
+    "core_stock_apis": "yfinance",
+    "technical_indicators": "yfinance",
+    "fundamental_data": "yfinance",
+    "news_data": "yfinance",
+}
+```
+
+You can also override individual tools through `tool_vendors`.
+
+Current practical guidance:
+
+- US / global equities: `yfinance` is the simplest default
+- A-share fundamentals: prefer `akshare`
+- Alpha Vantage: use only if you explicitly want that provider and have a key
+
+## Output Structure
+
+By default, analysis output is written under:
+
+```text
+results/
+```
+
+Typical stock-analysis output:
+
+```text
+results/<TICKER>/<YYYY-MM-DD>/
+├── message_tool.log
+└── reports/
+    ├── market_report.md
+    ├── sentiment_report.md
+    ├── news_report.md
+    ├── fundamentals_report.md
+    ├── investment_plan.md
+    ├── trader_investment_plan.md
+    └── final_trade_decision.md
+```
+
+Typical regular-investment output:
+
+```text
+results/RI_<TICKER>_<YYYYMMDD>/
+└── RI_<TICKER>_analysis_<YYYY-MM-DD>.md
+```
+
+State logs may also be written under:
+
+```text
+eval_results/<TICKER>/TradingAgentsStrategy_logs/
+```
+
+## Example Scripts In This Workspace
+
+These scripts reflect current local usage patterns:
+
+- `run_000792sz.py`
+- `run_601298sh.py`
+- `run_ri_159928.py`
+- `run_ri_600900.py`
+- `validate_handoff.py`
+
+They are useful as concrete references for:
+
+- Chinese output
+- A-share fundamentals via `AKShare`
+- deeper debate depth
+- custom report generation
+
+## Running Tests
+
+Run the main test suite:
+
+```bash
+pytest tests/
+```
+
+Useful focused tests:
+
+```bash
+pytest tests/test_model_validation.py
+pytest tests/test_ashare_rules.py
+pytest tests/test_google_api_key.py
+```
+
+Local validation scripts:
+
+```bash
+python validate_handoff.py
+python test_deepseek.py
+python test_deepseek_reasoner.py
+python test_ri_fundamental.py
+```
+
+## A-share Notes
+
+Important A-share behavior in the current code:
+
+- Use explicit symbols such as `300750.SZ` and `600519.SH`
+- Internally, vendor adapters may convert Shanghai symbols to `.SS` for `yfinance`
+- News handling for A-shares is isolated from global-news prompts
+- Trader output may be annotated or constrained by A-share rule validation
+- Reports may mention `T+1`, price-limit rules, suspension, delisting risk, and `ST` conditions
+
+This means A-share analysis is intentionally more conservative than generic US-equity flows.
+
+## Troubleshooting
+
+### Missing API key
+
+The CLI validates provider-specific API keys before starting. If you choose `mimo`, you must have:
+
+```env
+MIMO_API_KEY=...
+```
+
+### Empty or partial data
+
+Common causes:
+
+- provider rate limits
+- unavailable vendor endpoint
+- market holiday / non-trading date
+- unsupported symbol format
+
+For A-shares:
+
+- prefer `.SZ` / `.SH` symbols
+- prefer `akshare` for fundamentals
+
+### Slow runs
+
+Deep research settings can be slow because the system performs:
+
+- multiple analyst passes
+- researcher debate rounds
+- risk debate rounds
+- repeated tool calls
+
+Reduce runtime by lowering:
+
+- `max_debate_rounds`
+- `max_risk_discuss_rounds`
+- selected analysts
+
+## License
+
+This repository includes an Apache 2.0 license. See [LICENSE](LICENSE).
+
+In practical terms:
+
+- you may use, modify, and distribute the code under Apache 2.0 terms
+- you must preserve required notices and license text
+- the software is provided on an `AS IS` basis, without warranties
+
+## Copyright And Attribution
+
+- Original framework: Tauric Research / TradingAgents
+- This workspace contains additional local modifications for provider support, A-share handling, and regular-investment workflows
+
+If you redistribute modified versions, keep:
+
+- the Apache 2.0 license text
+- any required attribution and notice files
+- a clear statement of your own modifications
+
+Third-party provider names, exchange names, and product names remain the property of their respective owners.
 
 ## Citation
 
-Please reference our work if you find *TradingAgents* provides you with some help :)
+If this project helps your work, cite the original TradingAgents paper:
 
-```
+```bibtex
 @misc{xiao2025tradingagentsmultiagentsllmfinancial,
-      title={TradingAgents: Multi-Agents LLM Financial Trading Framework}, 
-      author={Yijia Xiao and Edward Sun and Di Luo and Wei Wang},
-      year={2025},
-      eprint={2412.20138},
-      archivePrefix={arXiv},
-      primaryClass={q-fin.TR},
-      url={https://arxiv.org/abs/2412.20138}, 
+  title={TradingAgents: Multi-Agents LLM Financial Trading Framework},
+  author={Yijia Xiao and Edward Sun and Di Luo and Wei Wang},
+  year={2025},
+  eprint={2412.20138},
+  archivePrefix={arXiv},
+  primaryClass={q-fin.TR},
+  url={https://arxiv.org/abs/2412.20138}
 }
 ```
