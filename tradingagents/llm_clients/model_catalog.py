@@ -94,6 +94,14 @@ MODEL_OPTIONS: ProviderModeOptions = {
             ("DeepSeek Chat (V3) - Fast, cost-effective", "deepseek-chat"),
         ],
     },
+    "mimo": {
+        "quick": [
+            ("MiMo V2 Pro - Xiaomi reasoning model", "mimo-v2-pro"),
+        ],
+        "deep": [
+            ("MiMo V2 Pro - Xiaomi reasoning model", "mimo-v2-pro"),
+        ],
+    },
 }
 
 

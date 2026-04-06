@@ -21,6 +21,12 @@ def create_market_analyst(llm):
             get_indicators,
         ]
 
+        # 市场感知提示词
+        from tradingagents.agents.utils.agent_utils import get_market_specific_instruction
+        market_instruction = get_market_specific_instruction(
+            state["company_of_interest"], analyst_role="market"
+        )
+
         system_message = (
             """You are a trading assistant tasked with analyzing financial markets. Your role is to select the **most relevant indicators** for a given market condition or trading strategy from the following list. The goal is to choose up to **8 indicators** that provide complementary insights without redundancy. Categories and each category's indicators are:
 
@@ -49,6 +55,7 @@ Volume-Based Indicators:
 - Select indicators that provide diverse and complementary information. Avoid redundancy (e.g., do not select both rsi and stochrsi). Also briefly explain why they are suitable for the given market context. When you tool call, please use the exact name of the indicators provided above as they are defined parameters, otherwise your call will fail. Please make sure to call get_stock_data first to retrieve the CSV that is needed to generate indicators. Then use get_indicators with the specific indicator names. Write a very detailed and nuanced report of the trends you observe. Provide specific, actionable insights with supporting evidence to help traders make informed decisions."""
             + """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
             + get_language_instruction()
+            + (" " + market_instruction if market_instruction else "")
         )
 
         prompt = ChatPromptTemplate.from_messages(

@@ -21,10 +21,11 @@ _LLM_API_TIMEOUT = int(os.getenv("LLM_API_TIMEOUT", "120"))
 
 # ── provider registry (base_url, env_var_for_api_key) ────────────────────────
 _PROVIDER_CONFIG = {
-    "xai":        ("https://api.x.ai/v1",             "XAI_API_KEY"),
-    "openrouter": ("https://openrouter.ai/api/v1",    "OPENROUTER_API_KEY"),
-    "ollama":     ("http://localhost:11434/v1",        None),
-    "deepseek":   ("https://api.deepseek.com/v1",     "DEEPSEEK_API_KEY"),
+    "xai":        ("https://api.x.ai/v1",                          "XAI_API_KEY"),
+    "openrouter": ("https://openrouter.ai/api/v1",                 "OPENROUTER_API_KEY"),
+    "ollama":     ("http://localhost:11434/v1",                     None),
+    "deepseek":   ("https://api.deepseek.com/v1",                  "DEEPSEEK_API_KEY"),
+    "mimo":       ("https://token-plan-cn.xiaomimimo.com/v1",      "MIMO_API_KEY"),
 }
 
 # ── deepseek-reasoner (R1) specific settings ─────────────────────────────────

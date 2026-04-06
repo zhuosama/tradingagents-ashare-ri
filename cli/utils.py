@@ -18,6 +18,7 @@ _PROVIDER_KEY_ENV: dict[str, str] = {
     "xai":         "XAI_API_KEY",
     "openrouter":  "OPENROUTER_API_KEY",
     "deepseek":    "DEEPSEEK_API_KEY",
+    "mimo":        "MIMO_API_KEY",
     # ollama 本地运行，无需 API Key
 }
 
@@ -237,6 +238,7 @@ def select_llm_provider() -> tuple[str, str]:
         ("xAI",         "https://api.x.ai/v1"),
         ("Openrouter",  "https://openrouter.ai/api/v1"),
         ("DeepSeek",    "https://api.deepseek.com/v1"),   # 【新增】DeepSeek
+        ("MiMo",        "https://token-plan-cn.xiaomimimo.com/v1"),  # 【新增】Xiaomi MiMo
         ("Ollama",      "http://localhost:11434/v1"),
     ]
 
