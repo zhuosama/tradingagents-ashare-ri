@@ -1,1 +1,41 @@
-.
+# ==============================================================================
+# TradingAgents — 精确依赖快照
+# 生成时间：2026-04-05
+# 用途：pip install -r requirements.txt 可复现完全相同的依赖树
+# 升级前必须先更新本文件，并在 pyproject.toml 同步调整 ~= 约束
+# ==============================================================================
+
+# --- 数据基建（次版本锁定，禁止随意升级）---
+akshare==1.18.51
+yfinance==1.2.0
+pandas==3.0.2
+requests==2.33.1
+httpx==0.28.1
+pydantic==2.12.5
+pydantic-settings==2.13.1
+stockstats==0.6.8
+lxml==6.0.2
+beautifulsoup4==4.14.3
+aiohttp==3.13.5
+diskcache==5.6.3          # 缓存层：SQLite 持久化，需 pip install
+
+# --- LangChain / LangGraph 生态（宽松约束，跟随上游）---
+langchain-core>=0.3.81
+langchain-anthropic>=0.3.15
+langchain-experimental>=0.3.4
+langchain-google-genai>=2.1.5
+langchain-openai>=0.3.23
+langgraph>=0.4.8
+
+# --- 其他运行时依赖 ---
+backtrader>=1.9.78.123
+parsel>=1.10.0
+pytz>=2025.2
+questionary>=2.1.0
+rank-bm25>=0.2.2
+redis>=6.2.0
+rich>=14.0.0
+typer>=0.21.0
+setuptools>=80.9.0
+tqdm>=4.67.1
+typing-extensions>=4.14.0

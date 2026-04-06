@@ -16,24 +16,34 @@ dependencies = [
     "langchain-google-genai>=2.1.5",
     "langchain-openai>=0.3.23",
     "langgraph>=0.4.8",
-    "pandas>=2.3.0",
     "parsel>=1.10.0",
     "pytz>=2025.2",
     "questionary>=2.1.0",
     "rank-bm25>=0.2.2",
     "redis>=6.2.0",
-    "requests>=2.32.4",
     "rich>=14.0.0",
     "typer>=0.21.0",
     "setuptools>=80.9.0",
-    "stockstats>=0.6.5",
     "tqdm>=4.67.1",
     "typing-extensions>=4.14.0",
-    "yfinance>=0.2.63",
+    # --- 数据基建依赖：次版本锁定，防止上游爬虫 API 静默变更 ---
+    "akshare~=1.18.51",
+    "yfinance~=1.2.0",
+    "pandas~=3.0.2",
+    "requests~=2.33.1",
+    "httpx~=0.28.1",
+    "pydantic~=2.12.5",
+    "stockstats~=0.6.8",
+    "lxml~=6.0.2",
+    "beautifulsoup4~=4.14.3",
+    "aiohttp~=3.13.5",
+    # 缓存层：SQLite-backed 持久化缓存
+    "diskcache~=5.6.3",
 ]
 
 [project.scripts]
 tradingagents = "cli.main:app"
+tradingagents-ri = "cli.regular_investment_cli:app"
 
 [tool.setuptools.packages.find]
 include = ["tradingagents*", "cli*"]
