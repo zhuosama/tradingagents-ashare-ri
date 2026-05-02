@@ -1,6 +1,15 @@
-# TradingAgents
+# TradingAgents — A-Share + DCA Fork
 
 Multi-agent LLM framework for stock analysis and regular-investment research.
+
+> 🚀 **Companion project**: For the production deployment that grew out of this
+> research — a 5-agent self-iterating system running autonomously on Chinese
+> A-shares since 2026-04-13 — see [**virtual-trader**](https://github.com/zhuosama/virtual-trader).
+> This repo is the **research playground**; virtual-trader is the **production system**.
+
+> 📂 **See it run**: Real outputs from this fork are committed under
+> [`examples/`](examples/) — including a 7-report multi-agent analysis of
+> 蓝光发展 (601298.SH) and a DCA backtest on 中证农业 ETF (159928.SZ).
 
 This workspace is based on `TradingAgents` and currently includes:
 

@@ -219,3 +219,14 @@ __marimo__/
 
 # Cache
 **/data_cache/
+
+# Run outputs (excluded; representative samples kept in examples/)
+# Anchored to repo root with leading slash, so reports/ subdirs inside examples/ are NOT matched
+/results/
+/reports/
+/eval_results/
+/archive_y/
+
+# Defensive whitelist for examples/ in case any pattern would catch it
+!examples/
+!examples/**
